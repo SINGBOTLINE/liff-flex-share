@@ -16,26 +16,13 @@
 </div>
 
 <script>
-// init LIFF
-liff.init({ liffId: "2008621627-1eN2VA2x" })
-  .then(()=>console.log("LIFF init success"))
-  .catch(err=>console.error("LIFF init failed", err));
-
-// Flex JSON (ของคุณแบบเต็ม)
+// Flex JSON ของคุณ (ครบทุกปุ่มเหมือนเดิม)
 const flexMessage = {
   "type": "flex",
   "altText": "รับ โพส แชร์ ข้อความ รูป",
   "contents": {
     "type": "bubble",
     "size": "giga",
-    "hero": {
-      "type": "image",
-      "url": "https://media.giphy.com/media/ICOgUNjpvO0PC/giphy.gif",
-      "size": "full",
-      "aspectRatio": "1:1",
-      "aspectMode": "cover",
-      "animated": true
-    },
     "body": {
       "type": "box",
       "layout": "vertical",
@@ -43,11 +30,11 @@ const flexMessage = {
         {
           "type": "text",
           "text": "ระบบ PYTHON  AUTOPOST",
-          "weight": "bold",
-          "size": "xl",
-          "align": "center",
           "color": "#ffffff",
-          "wrap": true
+          "wrap": true,
+          "align": "center",
+          "weight": "bold",
+          "size": "xl"
         }
       ],
       "backgroundColor": "#000000"
@@ -78,21 +65,27 @@ const flexMessage = {
           "action": { "type": "uri", "label": "รับดึงกลุ่ม", "uri": "https://line.me/ti/p/~mc357.com" } },
         { "type": "button", "style": "primary", "height": "sm", "offsetTop": "sm",
           "action": { "type": "uri", "label": "ขายแฟ้มระบบ พร้อมสอน", "uri": "https://line.me/ti/p/~mc357.com" } },
-        { "type": "button", "style": "primary", "height": "sm", "offsetTop": "sm", "color": "#000000",
-          "action": { "type": "uri", "label": "สนใจคลิกได้เลย 👇", "uri": "https://line.me/ti/p/~mc357.com" } },
-        { "type": "button", "style": "primary", "height": "sm", "offsetTop": "sm", "color": "#000000",
-          "action": { "type": "uri", "label": "หรือไลน์ ไอดี mc357.com", "uri": "https://line.me/ti/p/~mc357.com" } },
-        { "type": "button", "style": "primary", "height": "sm", "offsetTop": "sm", "color": "#000000",
-          "action": { "type": "uri", "label": "คลิกเพื่อส่งให้เพื่อนดู😘", "uri": "https://liff.line.me/2008621627-1eN2VA2x" } }
+        { "type": "button", "style": "primary", "height": "sm", "offsetTop": "sm",
+          "action": { "type": "uri", "label": "สนใจคลิกได้เลย 👇", "uri": "https://line.me/ti/p/~mc357.com" },
+          "color": "#000000" },
+        { "type": "button", "style": "primary", "height": "sm", "offsetTop": "sm",
+          "action": { "type": "uri", "label": "หรือไลน์ ไอดี mc357.com", "uri": "https://line.me/ti/p/~mc357.com" },
+          "color": "#000000" },
+        { "type": "button", "style": "primary", "height": "sm", "offsetTop": "sm",
+          "action": { "type": "uri", "label": "คลิกเพื่อส่งให้เพื่อนดู😘", "uri": "https://liff.line.me/2008621627-1eN2VA2x" },
+          "color": "#000000" }
       ]
     }
   }
 };
 
-// share function
+// init LIFF
+liff.init({ liffId: "2008621627-1eN2VA2x" });
+
+// ฟังก์ชันแชร์
 async function shareFlex() {
   if (!liff.isInClient()) {
-    alert("⚠ กรุณาเปิดลิงก์ผ่านแอป LINE เพื่อแชร์ให้เพื่อน");
+    alert("⚠ กรุณาเปิดลิงก์ผ่านแอป LINE");
     return;
   }
   try {
