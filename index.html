@@ -19,8 +19,8 @@
 
 <script>
   liff.init({ liffId: "2008621627-1eN2VA2x" })
-    .then(() => console.log("LIFF เริ่มต้นเรียบร้อย"))
-    .catch(err => console.error("LIFF init ล้มเหลว", err));
+    .then(() => console.log("LIFF init success"))
+    .catch(err => console.error("LIFF init failed", err));
 
   async function shareFlex() {
     const flexMessage = {
@@ -60,16 +60,16 @@
     };
 
     if (!liff.isInClient()) {
-      alert("⚠ กรุณาเปิดลิงก์นี้ผ่านแอป LINE เท่านั้น");
+      alert("⚠ กรุณาเปิดลิงก์นี้ผ่านแอป LINE");
       return;
     }
 
     try {
       await liff.shareTargetPicker([flexMessage]);
-      alert("✨ แชร์สำเร็จแล้ว!");
+      alert("✨ แชร์สำเร็จ!");
     } catch (error) {
       console.error(error);
-      alert("❌ แชร์ล้มเหลว");
+      alert("❌ แชร์ไม่สำเร็จ");
     }
   }
 </script>
