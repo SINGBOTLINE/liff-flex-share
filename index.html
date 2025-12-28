@@ -1,4 +1,29 @@
-// 🟦 Flex ที่ 1 (ของคุณแบบครบทุกปุ่ม)
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LIFF Flex Share</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+
+<div style="text-align:center; margin-top:60px;">
+  <h2>กดปุ่มเพื่อแชร์ Flex ให้เพื่อน</h2>
+
+  <button onclick="shareFlex1()" style="font-size:20px;padding:16px 28px;border:none;border-radius:8px;cursor:pointer;margin-bottom:20px;">
+    แชร์ระบบ AutoPost 😍
+  </button>
+
+  <br/>
+
+  <button onclick="shareFlex2()" style="font-size:20px;padding:16px 28px;border:none;border-radius:8px;cursor:pointer;">
+    แชร์รูปติดต่อ 🔥
+  </button>
+</div>
+
+<script>
+// 🔹 Flex 1 (ของคุณก้อนใหญ่ ครบทุกปุ่ม)
 const flex1 = {
   "type": "flex",
   "altText": "รับ โพส แชร์ ข้อความ รูป",
@@ -56,7 +81,7 @@ const flex1 = {
   }
 };
 
-// 🟥 Flex ที่ 2 (ของคุณอันใหม่ — รูปติดต่อ)
+// 🔹 Flex 2 (bubble รูปติดต่อที่คุณส่งมา)
 const flex2 = {
   "type": "flex",
   "altText": "ติดต่อเรา",
@@ -89,6 +114,12 @@ const flex2 = {
             "label": "ติดต่อ คลิก!!!",
             "uri": "http://line.me/ti/p/~mc357.com"
           }
+        },
+        {
+          "type": "box",
+          "layout": "vertical",
+          "contents": [],
+          "margin": "sm"
         }
       ],
       "flex": 0,
@@ -97,27 +128,37 @@ const flex2 = {
   }
 };
 
-// 🎯 ปุ่มแชร์แยก 2 ปุ่ม
+// 🚀 init LIFF (ถูกต้องตาม ID ของคุณ)
+liff.init({ liffId: "2008621627-1eN2VA2x" }).then(() => {
+  console.log("LIFF Ready");
+});
+
+// 🎯 ปุ่มแชร์ที่ 1
 async function shareFlex1() {
   if (!liff.isInClient()) {
-    alert("⚠ กรุณาเปิดผ่านแอป LINE");
+    alert("⚠ กรุณาเปิดลิงก์ผ่านแอป LINE");
     return;
   }
   try {
     await liff.shareTargetPicker([flex1]);
   } catch (e) {
-    console.error(e);
+    console.error("Share Flex1 error", e);
   }
 }
 
+// 🎯 ปุ่มแชร์ที่ 2
 async function shareFlex2() {
   if (!liff.isInClient()) {
-    alert("⚠ กรุณาเปิดผ่านแอป LINE");
+    alert("⚠ กรุณาเปิดลิงก์ผ่านแอป LINE");
     return;
   }
   try {
     await liff.shareTargetPicker([flex2]);
   } catch (e) {
-    console.error(e);
+    console.error("Share Flex2 error", e);
   }
 }
+</script>
+
+</body>
+</html>
