@@ -1,186 +1,180 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>LIFF Flex Share + Access Control</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Flex Generator + Admin Whitelist</title>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <style>
-body {
-  margin:0; padding:0; height:100vh;
-  background-image:url("https://img2.pic.in.th/IMG_0784.jpeg");
-  background-size:cover; background-position:center;
-  font-family:sans-serif; display:flex; justify-content:center;
-}
-.container {
-  background:rgba(0,0,0,0.6); padding:24px; border-radius:12px;
-  width:90%; max-width:420px; margin-top:70px; color:#fff; text-align:center;
-}
-input{width:100%;padding:14px;border-radius:8px;border:none;font-size:16px;margin-bottom:16px;}
-button{width:100%;font-size:18px;padding:14px;border-radius:8px;border:none;cursor:pointer;margin-bottom:14px;}
-button:active{transform:scale(0.96);}
-hr{margin:18px 0;opacity:0.3;}
+  body {
+    font-family: sans-serif;
+    background: #111;
+    color: #fff;
+    text-align: center;
+    padding-top: 40px;
+  }
+  input, textarea {
+    width: 90%;
+    padding: 12px;
+    border-radius: 6px;
+    border: none;
+    font-size: 16px;
+    margin-top: 10px;
+  }
+  button {
+    font-size: 18px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 14px;
+  }
+  .admin-panel {
+    background: rgba(0,0,0,0.6);
+    margin-top: 40px;
+    padding: 20px;
+    border-radius: 10px;
+    white-space: pre-line;
+  }
 </style>
 </head>
+
 <body>
 
-<div class="container">
-  <h2 id="username">กำลังโหลดข้อมูลผู้ใช้...</h2>
+<h2>Flex Generator</h2>
+<input id="genInput" placeholder="วาง: ImageURL + เว้นวรรค + LINE ID" />
+<button onclick="sendFlex()">สร้างและแชร์ Flex</button>
 
-  <!-- ปุ่มแชร์ Flex ส่วนตัว -->
-  <button id="btnFlex1" onclick="shareFlex1()">แชร์ Flex1 😍</button>
-  <button id="btnFlex2" onclick="shareFlex2()">แชร์ Flex2 🔥</button>
+<button onclick="requestWhitelist()">ขอเพิ่ม Whitelist (แจ้งเตือนเข้ากลุ่ม)</button>
 
-  <hr/>
+<div class="admin-panel">
+  <h3>Admin Panel</h3>
+  <input id="wlName" placeholder="ชื่อผู้ใช้ LINE" />
+  <input id="wlUserId" placeholder="userId LINE" />
+  <button onclick="addWhitelist()">เพิ่ม Whitelist</button>
+  <button onclick="removeWhitelist()">ลบ Whitelist</button>
 
-  <!-- UI เพิ่ม Flex ตาม userId -->
-  <input id="flexJsonInput" placeholder="วาง Flex JSON"/>
-  <input id="flexUserIdInput" placeholder="ใส่ userId ที่จะผูกกับ Flex"/>
-  <button id="addFlexBtn" onclick="addFlexButton()">➕ เพิ่มปุ่ม Flex</button>
-
-  <div id="flexButtons"></div>
-
-  <hr/>
-
-  <!-- Generator -->
-  <input id="genInput" placeholder="วาง: ลิงก์รูป เว้นวรรค LINE ID"/>
-  <button id="genShareBtn" onclick="generateAndShare()">สร้างและแชร์ Flex 🚀</button>
+  <h4>Whitelist ปัจจุบัน</h4>
+  <div id="list"></div>
 </div>
 
 <script>
-// ====== WHITELIST 2 ชื่อ ======
-const whitelistUsers = [
-  { name: "🥀⚡🖤➣ໂのနတՃั่Ձ¹✯🖤⚡🥀", userId: "u72d702258991428344e77670bb76f80a" }
-];
+const ADMIN = "u72d702258991428344e77670bb76f80a"; // Admin userId
+let whitelist = JSON.parse(localStorage.getItem("whitelist") || "[]");
 
-// ====== FLEX ส่วนตัวของคุณ (ไม่ถูกแก้) ======
-const flex1 = {
-  "type": "flex",
-  "altText": "รับ โพส แชร์ ข้อความ รูป",
-  "contents": {
-    "type": "bubble",
-    "size": "giga",
-    "body": {
-      "type": "box",
-      "layout": "vertical",
-      "contents": [
-        { "type": "text", "text": "ระบบ PYTHON  AUTOPOST", "color": "#ffffff", "wrap": true, "align": "center", "weight": "bold", "size": "xl" }
-      ],
-      "backgroundColor": "#000000"
-    },
-    "footer": { "type": "box", "layout": "vertical", "spacing": "sm", "backgroundColor": "#99ffff", "contents": [] }
+function renderList() {
+  const view = whitelist.map(w => `👤 ${w.name}\n🆔 ${w.userId}`).join("\n\n");
+  document.getElementById("list").innerText = view || "ยังไม่มี whitelist";
+}
+
+function addWhitelist() {
+  if (window.currentUserId !== ADMIN) {
+    alert("⛔ เฉพาะแอดมินเพิ่มได้");
+    return;
   }
-};
+  const name = document.getElementById("wlName").value.trim();
+  const userId = document.getElementById("wlUserId").value.trim();
+  if (!name || !userId) return alert("❌ ใส่ชื่อและ userId");
 
-const flex2 = {
-  "type": "flex",
-  "altText": "ติดต่อเรา",
-  "contents": {
-    "type": "bubble",
-    "size": "giga",
-    "hero": {
-      "type": "image",
-      "url": "https://img2.pic.in.th/IMG_0784.jpeg",
-      "size": "full",
-      "aspectRatio": "2:3",
-      "aspectMode": "cover",
-      "action": { "type": "uri", "uri": "http://line.me/ti/p/~mc357.com" },
-      "backgroundColor": "#000000"
-    },
-    "footer": { "type": "box", "layout": "vertical", "spacing": "sm", "contents": [] }
+  whitelist.push({ name, userId });
+  localStorage.setItem("whitelist", JSON.stringify(whitelist));
+  renderList();
+  alert("✅ เพิ่ม whitelist แล้ว");
+}
+
+function removeWhitelist() {
+  if (window.currentUserId !== ADMIN) {
+    alert("⛔ เฉพาะแอดมินลบได้");
+    return;
   }
-};
+  const name = document.getElementById("wlName").value.trim();
+  const userId = document.getElementById("wlUserId").value.trim();
+  whitelist = whitelist.filter(w => !(w.name === name && w.userId === userId));
+  localStorage.setItem("whitelist", JSON.stringify(whitelist));
+  renderList();
+  alert("🗑 ลบ whitelist แล้ว");
+}
 
-// ====== เก็บ Flex ที่เพิ่ม ======
-const userFlexMap = {};
+async function sendFlex() {
+  if (!liff.isInClient()) return alert("⚠ เปิดผ่าน LINE");
 
-// ====== init LIFF + ควบคุมสิทธิ์ ======
-liff.init({ liffId: "2008621627-1eN2VA2x" })
-.then(async()=>{
   const profile = await liff.getProfile();
-  document.getElementById("username").innerText = `สวัสดีคุณ ${profile.displayName} 😊`;
+  window.currentUserId = profile.userId;
 
-  const isAllowed = whitelistUsers.some(
-    user => user.name === profile.displayName && user.userId === profile.userId
-  );
-
-  if(!isAllowed){
-    // disable ทุกปุ่มแชร์
-    document.getElementById("btnFlex1").disabled = true;
-    document.getElementById("btnFlex2").disabled = true;
-    document.getElementById("genShareBtn").disabled = true;
-    document.getElementById("addFlexBtn").disabled = true;
-    document.getElementById("genShareBtn").innerText = "กรุณาติดต่อแอดมิน";
-    document.getElementById("addFlexBtn").innerText = "กรุณาติดต่อแอดมิน";
+  const isAllowed = whitelist.some(w => w.userId === profile.userId);
+  if (!isAllowed && profile.userId !== ADMIN) {
+    alert("⛔ คุณไม่มีสิทธิ์แชร์ กรุณาติดต่อแอดมิน");
+    return;
   }
-})
-.catch(err=>{
-  console.error(err);
-  document.getElementById("username").innerText="❌ LIFF โหลดไม่สำเร็จ";
-});
 
-// ====== ฟังก์ชันแชร์ Flex1 / Flex2 ======
-async function shareFlex1(){
-  if(!liff.isInClient()){alert("⚠ เปิดผ่าน LINE");return;}
-  await liff.shareTargetPicker([flex1]);
-}
+  const raw = document.getElementById("genInput").value.trim();
+  const parts = raw.split(" ");
+  if (parts.length !== 2) return alert("❌ format ผิด");
 
-async function shareFlex2(){
-  if(!liff.isInClient()){alert("⚠ เปิดผ่าน LINE");return;}
-  await liff.shareTargetPicker([flex2]);
-}
+  const [imageUrl, lineId] = parts;
 
-// ====== เพิ่มปุ่มแชร์ Flex ตาม userId (admin เพิ่มได้) ======
-function addFlexButton(){
-  try{
-    const flexJson = JSON.parse(document.getElementById("flexJsonInput").value);
-    const userId = document.getElementById("flexUserIdInput").value.trim();
-
-    userFlexMap[userId] = flexJson;
-
-    const btn = document.createElement("button");
-    btn.innerText = `แชร์ Flex (เฉพาะ ${userId})`;
-    btn.onclick = async()=>{
-      const profile = await liff.getProfile();
-      const isAllowed = whitelistUsers.some(u=>u.userId===profile.userId && u.name===profile.displayName);
-      if(!isAllowed){
-        alert("⛔ ไม่มีสิทธิ์แชร์");
-        return;
-      }
-      await liff.shareTargetPicker([flexJson]);
-    };
-
-    document.getElementById("flexButtons").appendChild(btn);
-    alert("✅ เพิ่มปุ่มสำเร็จ!");
-  }catch(e){
-    alert("❌ JSON ผิดพลาด");
-  }
-}
-
-// ====== Generator แบบ 1 ช่อง (วาง: รูป + เว้นวรรค + LINE ID) ======
-async function generateAndShare(){
-  const input=document.getElementById("genInput").value.trim();
-  if(!input.includes(" ")){alert("⚠ ใส่: ลิงก์รูป เว้นวรรค LINE ID");return;}
-  const [img,id]=input.split(" ",2);
-
-  const flex={
-    "type":"flex","altText":"Generated Flex","contents":{
-      "type":"carousel","contents":[
-        {"type":"bubble","size":"giga","hero":{
-          "type":"image","url":img,"size":"full","aspectRatio":"2:3","aspectMode":"cover",
-          "action":{"type":"uri","uri":`http://line.me/ti/p/~${id}`},"backgroundColor":"#000000"},
-        "footer":{"type":"button","style":"primary","action":{"type":"uri","label":"ติดต่อ คลิก!!!","uri":`http://line.me/ti/p/~${id}`}}}
+  const flexMsg = {
+    type: "flex",
+    altText: "Flex Message",
+    contents: {
+      type: "carousel",
+      contents: [
+        {
+          type: "bubble",
+          size: "giga",
+          hero: {
+            type: "image",
+            url: imageUrl,
+            size: "full",
+            aspectRatio: "2:3",
+            aspectMode: "cover",
+            action: { type: "uri", uri: `http://line.me/ti/p/~${lineId}` }
+          },
+          footer: {
+            type: "box",
+            layout: "vertical",
+            spacing: "sm",
+            contents: [
+              {
+                type: "button",
+                style: "primary",
+                height: "sm",
+                action: { type: "uri", label: "ติดต่อ คลิก!!!", uri: `http://line.me/ti/p/~${lineId}` }
+              }
+            ],
+            backgroundColor: "#000000"
+          }
+        }
       ]
     }
   };
 
-  const profile=await liff.getProfile();
-  const isAllowed=whitelistUsers.some(u=>u.userId===profile.userId && u.name===profile.displayName);
-  if(!isAllowed){alert("⛔ ไม่มีสิทธิ์แชร์");return;}
-
-  await liff.shareTargetPicker([flex]);
+  try {
+    await liff.shareTargetPicker([flexMsg]);
+    alert("✨ แชร์สำเร็จ!");
+  } catch(e) {
+    alert("❌ แชร์ไม่สำเร็จ");
+    console.error(e);
+  }
 }
+
+async function requestWhitelist() {
+  if (!liff.isInClient()) return alert("⚠ เปิดผ่าน LINE");
+
+  const profile = await liff.getProfile();
+  await fetch("https://YOUR_SERVER_URL/whitelist-request", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(profile)
+  });
+  alert("📨 ส่งคำขอเข้ากลุ่มแอดมินแล้ว!");
+}
+
+liff.init({ liffId: "2008621627-1eN2VA2x" }).then(() => {
+  liff.getProfile().then(p => { window.currentUserId = p.userId; });
+  renderList();
+});
 </script>
 
 </body>
