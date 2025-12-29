@@ -8,12 +8,9 @@
 <style>
 body { font-family: sans-serif; background: #111; color: #fff; padding: 30px; }
 h2,h3,h4 { margin: 10px 0; }
-input { width: 100%; padding: 12px; border-radius: 6px; border: none; font-size: 16px; margin-top: 10px; }
 button { font-size: 16px; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; margin-top: 10px; }
 .admin-panel { background: rgba(0,0,0,0.6); margin-top: 30px; padding: 20px; border-radius: 10px; text-align:left;}
 #logOutput, #myUserId { margin-top: 10px; font-weight: bold; white-space: pre-line; color: #0f0; text-align:left;}
-.flex-row { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
-.flex-row input { flex: 1; }
 img.qrcode { width: 200px; margin-top: 10px; border: 2px solid #fff; border-radius: 10px; }
 </style>
 </head>
@@ -28,10 +25,8 @@ img.qrcode { width: 200px; margin-top: 10px; border: 2px solid #fff; border-radi
 <div id="myUserId"></div>
 
 <h3>ส่งคำขอใช้</h3>
-<div class="flex-row">
-  <input id="reqLineId" placeholder="กรอก LINE ID ของคุณ">
-  <button onclick="sendRequest()">ส่งคำขอใช้</button>
-</div>
+<!-- ปุ่มแอดไลน์คุณโดยตรง -->
+<button style="background:#00c300;color:#fff;" onclick="addMeLine()">แอดไลน์แอดมิน</button>
 <!-- แสดง QR Code -->
 <img class="qrcode" src="https://img2.pic.in.th/IMG_1081.jpeg" alt="แอดไลน์">
 
@@ -39,7 +34,7 @@ img.qrcode { width: 200px; margin-top: 10px; border: 2px solid #fff; border-radi
   <h3>Admin Panel</h3>
   
   <h4>Whitelist</h4>
-  <div class="flex-row" id="whitelistControls" style="display:none;">
+  <div id="whitelistControls" style="display:none;">
     <input id="wlName" placeholder="ชื่อผู้ใช้ LINE">
     <input id="wlUserId" placeholder="userId ของ LIFF">
     <button onclick="addWhitelist()">เพิ่ม</button>
@@ -52,23 +47,22 @@ img.qrcode { width: 200px; margin-top: 10px; border: 2px solid #fff; border-radi
 </div>
 
 <script>
-// === LINE & Admin ===
 const ADMIN = "Ua48c35a3cd7641afee1d85c317032ad5"; // ใส่ userId ของ admin
 let whitelist = JSON.parse(localStorage.getItem("whitelist") || "[]");
 let currentUserId = "";
 
-// === Log ===
+// Log
 function log(msg){ document.getElementById("logOutput").innerText += msg + "\n"; }
 function logError(msg){ document.getElementById("logOutput").innerText += "❌ " + msg + "\n"; }
 
-// === Render Whitelist ===
+// Render Whitelist
 function renderList(){
   const view = whitelist.map(w=>`👤 ${w.name}\n🆔 ${w.userId}`).join("\n\n");
   document.getElementById("list").innerText = view || "ยังไม่มี whitelist";
-  document.getElementById("whitelistControls").style.display = (currentUserId === ADMIN) ? "flex" : "none";
+  document.getElementById("whitelistControls").style.display = (currentUserId === ADMIN) ? "block" : "none";
 }
 
-// === Admin add/remove whitelist ===
+// Admin add/remove whitelist
 function addWhitelist(){
   if(currentUserId!==ADMIN) return alert("⛔ เฉพาะ admin เพิ่มได้");
   const name=document.getElementById("wlName").value.trim();
@@ -89,7 +83,7 @@ function removeWhitelist(){
   log(`🗑 ลบ whitelist: ${name} (${userId})`);
 }
 
-// === Send Flex ===
+// Send Flex
 async function sendFlex(){
   if(!liff.isInClient()) return alert("⚠ เปิดผ่าน LINE");
   try{
@@ -153,7 +147,7 @@ async function sendFlex(){
   }
 }
 
-// === Show UserId ===
+// Show UserId
 async function showMyUserId(){
   if(!liff.isInClient()) return alert("⚠ เปิดผ่าน LINE");
   try{
@@ -165,15 +159,13 @@ async function showMyUserId(){
   }catch(e){ logError("❌ ไม่สามารถดึง userId: "+e); }
 }
 
-// === Send Request (ไปแอดไลน์ admin) ===
-function sendRequest(){
-  const lineIdInput = document.getElementById("reqLineId").value.trim();
-  if(!lineIdInput) return alert("❌ กรุณากรอก LINE ID");
-  alert("📨 กำลังเปิด LINE เพื่อแอดแอดมิน");
+// แอดไลน์แอดมิน
+function addMeLine(){
+  // เปิดลิงก์ LINE ของคุณ
   window.open("http://line.me/ti/p/~mc357.com", "_blank");
 }
 
-// === Init LIFF ===
+// Init LIFF
 liff.init({ liffId: "2008621627-1eN2VA2x" }).then(async ()=>{
   try{
     const profile = await liff.getProfile();
