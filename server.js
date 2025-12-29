@@ -1,27 +1,53 @@
-const express = require("express");
-const line = require("@line/bot-sdk");
-
+// server.js
+const express = require('express');
+const fs = require('fs');
+const cors = require('cors');
 const app = express();
+app.use(cors());
 app.use(express.json());
 
-const config = {
-  channelAccessToken: "m5ZxJYwkf9H5dVJZGy0D2ziXOOaC2yEeCIdPRgko9MfR7IrbY1nRDV5lbV8c8P55yHdj/BeP1ImehAILo02pfjsxmW4J6/Bkjih+Rj5317zHrT1efuIr/rQj1G8emzx+D+jDiVTqkXx+POl0ZeQlcQdB04t89/1O/w1cDnyilFU=", // ⬅ ใส่ token ของคุณตรงนี้
-  channelSecret: "35a6a2d44ea8301d9fa6f3bf503434ec"
-};
+const PORT = 3000;
+const FILE = 'whitelist.json';
 
-const client = new line.Client(config);
-
-async function notify(profile) {
-  const msg = {
-    type: "text",
-    text: `📢 มีคนขอเพิ่ม whitelist!\n👤 ชื่อ: ${profile.displayName}\n🆔 userId: ${profile.userId}`
-  };
-  await client.pushMessage("cbf750437c1414acc072cf55327918882", msg);
+// โหลด whitelist จากไฟล์
+function loadWhitelist() {
+  if (!fs.existsSync(FILE)) return [];
+  const data = fs.readFileSync(FILE);
+  return JSON.parse(data);
 }
 
-app.post("/whitelist-request", async (req, res) => {
-  await notify(req.body);
-  res.send({ ok: true });
+// บันทึก whitelist ลงไฟล์
+function saveWhitelist(list) {
+  fs.writeFileSync(FILE, JSON.stringify(list, null, 2));
+}
+
+// GET whitelist
+app.get('/whitelist', (req, res) => {
+  const list = loadWhitelist();
+  res.json(list);
 });
 
-app.listen(3000, () => console.log("Server running on port 3000"));
+// POST เพิ่ม user
+app.post('/whitelist', (req, res) => {
+  const { name, userId } = req.body;
+  if (!name || !userId) return res.status(400).json({ error: 'name and userId required' });
+  const list = loadWhitelist();
+  if (list.some(u => u.userId === userId)) return res.status(400).json({ error: 'userId already exists' });
+  list.push({ name, userId });
+  saveWhitelist(list);
+  res.json({ success: true, list });
+});
+
+// DELETE user
+app.delete('/whitelist', (req, res) => {
+  const { userId } = req.body;
+  if (!userId) return res.status(400).json({ error: 'userId required' });
+  let list = loadWhitelist();
+  list = list.filter(u => u.userId !== userId);
+  saveWhitelist(list);
+  res.json({ success: true, list });
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
