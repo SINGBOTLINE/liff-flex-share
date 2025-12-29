@@ -8,10 +8,14 @@
 <style>
 body { font-family: sans-serif; background: #111; color: #fff; padding: 30px; }
 h2,h3,h4 { margin: 10px 0; }
+input { width: 100%; padding: 12px; border-radius: 6px; border: none; font-size: 16px; margin-top: 10px; }
 button { font-size: 16px; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+button.addLine { background:#00c300;color:#fff; }
 .admin-panel { background: rgba(0,0,0,0.6); margin-top: 30px; padding: 20px; border-radius: 10px; text-align:left;}
 #logOutput, #myUserId { margin-top: 10px; font-weight: bold; white-space: pre-line; color: #0f0; text-align:left;}
 img.qrcode { width: 200px; margin-top: 10px; border: 2px solid #fff; border-radius: 10px; }
+.flex-row { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+.flex-row input { flex: 1; }
 </style>
 </head>
 <body>
@@ -24,17 +28,15 @@ img.qrcode { width: 200px; margin-top: 10px; border: 2px solid #fff; border-radi
 <button onclick="showMyUserId()">กดเพื่อดู UserId ของคุณ</button>
 <div id="myUserId"></div>
 
-<h3>ส่งคำขอใช้</h3>
-<!-- ปุ่มแอดไลน์คุณโดยตรง -->
-<button style="background:#00c300;color:#fff;" onclick="addMeLine()">แอดไลน์แอดมิน</button>
-<!-- แสดง QR Code -->
+<h3>แอดแอดมิน</h3>
+<button class="addLine" onclick="addMeLine()">แอดไลน์แอดมิน</button>
 <img class="qrcode" src="https://img2.pic.in.th/IMG_1081.jpeg" alt="แอดไลน์">
 
 <div class="admin-panel">
   <h3>Admin Panel</h3>
   
   <h4>Whitelist</h4>
-  <div id="whitelistControls" style="display:none;">
+  <div class="flex-row" id="whitelistControls" style="display:none;">
     <input id="wlName" placeholder="ชื่อผู้ใช้ LINE">
     <input id="wlUserId" placeholder="userId ของ LIFF">
     <button onclick="addWhitelist()">เพิ่ม</button>
@@ -59,7 +61,7 @@ function logError(msg){ document.getElementById("logOutput").innerText += "❌ "
 function renderList(){
   const view = whitelist.map(w=>`👤 ${w.name}\n🆔 ${w.userId}`).join("\n\n");
   document.getElementById("list").innerText = view || "ยังไม่มี whitelist";
-  document.getElementById("whitelistControls").style.display = (currentUserId === ADMIN) ? "block" : "none";
+  document.getElementById("whitelistControls").style.display = (currentUserId === ADMIN) ? "flex" : "none";
 }
 
 // Admin add/remove whitelist
@@ -91,8 +93,9 @@ async function sendFlex(){
     currentUserId = profile.userId;
     log("UserId ปัจจุบัน: "+currentUserId);
 
-    const allowed = whitelist.some(w => w.userId === currentUserId);
-    if(!allowed && currentUserId !== ADMIN){
+    // ✅ ตรวจ whitelist + admin
+    const allowed = whitelist.some(w => w.userId === currentUserId) || currentUserId === ADMIN;
+    if(!allowed){
       logError("⛔ คุณไม่มีสิทธิ์แชร์ Flex"); 
       return alert("⛔ คุณไม่มีสิทธิ์แชร์ กรุณาติดต่อแอดมิน");
     }
@@ -161,7 +164,6 @@ async function showMyUserId(){
 
 // แอดไลน์แอดมิน
 function addMeLine(){
-  // เปิดลิงก์ LINE ของคุณ
   window.open("http://line.me/ti/p/~mc357.com", "_blank");
 }
 
