@@ -5,21 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Flex + Admin + Request</title>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
 <style>
-body { font-family: sans-serif; background: #111; color: #fff; text-align: center; padding: 30px; }
-input { width: 90%; padding: 12px; border-radius: 6px; border: none; font-size: 16px; margin-top: 10px; }
-button { font-size: 18px; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; margin-top: 12px; }
-.admin-panel { background: rgba(0,0,0,0.6); margin-top: 30px; padding: 20px; border-radius: 10px; white-space: pre-line; text-align:left;}
+body { font-family: sans-serif; background: #111; color: #fff; padding: 30px; }
+h2,h3,h4 { margin: 10px 0; }
+input { width: 100%; padding: 12px; border-radius: 6px; border: none; font-size: 16px; margin-top: 10px; }
+button { font-size: 16px; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+.admin-panel { background: rgba(0,0,0,0.6); margin-top: 30px; padding: 20px; border-radius: 10px; text-align:left;}
 #logOutput, #myUserId { margin-top: 10px; font-weight: bold; white-space: pre-line; color: #0f0; text-align:left;}
 .request-list { margin-top:10px; text-align:left; }
+.flex-row { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+.flex-row input { flex: 1; }
 </style>
 </head>
-
 <body>
 
 <h2>Flex Generator</h2>
-<input id="genInput" placeholder="วาง: ImageURL + เว้นวรรค + LINE ID" />
+<input id="genInput" placeholder="วาง: ImageURL + เว้นวรรค + LINE ID ของคนอื่น" />
 <button onclick="sendFlex()">สร้างและแชร์ Flex</button>
 
 <h3>โชว์ UserId ของตัวเอง</h3>
@@ -27,17 +28,21 @@ button { font-size: 18px; padding: 12px 24px; border: none; border-radius: 6px; 
 <div id="myUserId"></div>
 
 <h3>ส่งคำขอใช้</h3>
-<input id="reqLineId" placeholder="กรอก LINE ID ของคุณ" />
-<button onclick="sendRequest()">ส่งคำขอใช้</button>
+<div class="flex-row">
+  <input id="reqLineId" placeholder="กรอก LINE ID ของคุณ" />
+  <button onclick="sendRequest()">ส่งคำขอใช้</button>
+</div>
 
 <div class="admin-panel">
   <h3>Admin Panel</h3>
   
   <h4>Whitelist</h4>
-  <input id="wlName" placeholder="ชื่อผู้ใช้ LINE" />
-  <input id="wlUserId" placeholder="userId LINE" />
-  <button onclick="addWhitelist()">เพิ่ม Whitelist</button>
-  <button onclick="removeWhitelist()">ลบ Whitelist</button>
+  <div class="flex-row" id="whitelistControls" style="display:none;">
+    <input id="wlName" placeholder="ชื่อผู้ใช้ LINE" />
+    <input id="wlUserId" placeholder="userId ของ LIFF" />
+    <button onclick="addWhitelist()">เพิ่ม</button>
+    <button onclick="removeWhitelist()">ลบ</button>
+  </div>
   <div id="list"></div>
 
   <h4>รายการคำขอใช้</h4>
@@ -61,13 +66,32 @@ function logError(msg){ document.getElementById("logOutput").innerText += "❌ "
 function renderList(){
   const view = whitelist.map(w=>`👤 ${w.name}\n🆔 ${w.userId}`).join("\n\n");
   document.getElementById("list").innerText = view || "ยังไม่มี whitelist";
+
+  // แสดงปุ่มเพิ่ม/ลบเฉพาะ admin
+  document.getElementById("whitelistControls").style.display = (currentUserId === ADMIN) ? "flex" : "none";
 }
 
 // Render request list
 function renderRequests(){
-  if(currentUserId!==ADMIN) return;
-  const view = requests.map((r,i)=>`${i+1}. LINE ID: ${r.lineId}, userId: ${r.userId}  [<button onclick="deleteRequest(${i})">ลบ</button>]`).join("\n");
-  document.getElementById("requestList").innerHTML = view || "ยังไม่มีคำขอ";
+  const container = document.getElementById("requestList");
+  container.innerHTML = "";
+  if(requests.length === 0){
+    container.innerText = "ยังไม่มีคำขอ";
+    return;
+  }
+  requests.forEach((r,i)=>{
+    const div = document.createElement("div");
+    div.style.marginBottom = "8px";
+    div.innerText = `${i+1}. LINE ID: ${r.lineId}, userId: ${r.userId}`;
+    if(currentUserId === ADMIN){
+      const btn = document.createElement("button");
+      btn.innerText = "ลบ";
+      btn.style.marginLeft = "10px";
+      btn.onclick = ()=> deleteRequest(i);
+      div.appendChild(btn);
+    }
+    container.appendChild(div);
+  });
 }
 
 // Admin add/remove whitelist
@@ -106,7 +130,7 @@ async function sendFlex(){
     }
 
     const raw = document.getElementById("genInput").value.trim();
-    const parts = raw.split(" ");
+    const parts = raw.split(/ (.+)/); // แยกเป็น 2 ส่วน
     if(parts.length !== 2) return alert("❌ format ผิด");
     const [imageUrl, lineId] = parts;
 
