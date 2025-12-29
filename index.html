@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flex + Admin + Request</title>
+<title>Flex + Admin + Request (Firebase)</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
 body { font-family: sans-serif; background: #111; color: #fff; padding: 30px; }
@@ -53,33 +55,44 @@ button { font-size: 16px; padding: 10px 20px; border: none; border-radius: 6px; 
 <div id="logOutput"></div>
 
 <script>
-const ADMIN = "Ua48c35a3cd7641afee1d85c317032ad5"; // <-- ใส่ userId ของ admin
+// === LINE & Admin ===
+const ADMIN = "Ua48c35a3cd7641afee1d85c317032ad5"; // ใส่ userId ของ admin
 let whitelist = JSON.parse(localStorage.getItem("whitelist") || "[]");
-let requests = JSON.parse(localStorage.getItem("requests") || "[]");
 let currentUserId = "";
 
-// Log
+// === Firebase Config ===
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// === Log ===
 function log(msg){ document.getElementById("logOutput").innerText += msg + "\n"; }
 function logError(msg){ document.getElementById("logOutput").innerText += "❌ " + msg + "\n"; }
 
-// Render whitelist
+// === Render Whitelist ===
 function renderList(){
   const view = whitelist.map(w=>`👤 ${w.name}\n🆔 ${w.userId}`).join("\n\n");
   document.getElementById("list").innerText = view || "ยังไม่มี whitelist";
-
-  // แสดงปุ่มเพิ่ม/ลบเฉพาะ admin
   document.getElementById("whitelistControls").style.display = (currentUserId === ADMIN) ? "flex" : "none";
 }
 
-// Render request list
-function renderRequests(){
+// === Render Requests ===
+function renderRequests(requests){
   const container = document.getElementById("requestList");
   container.innerHTML = "";
-  if(requests.length === 0){
+  if(!requests || Object.keys(requests).length===0){
     container.innerText = "ยังไม่มีคำขอ";
     return;
   }
-  requests.forEach((r,i)=>{
+  Object.entries(requests).forEach(([key,r],i)=>{
     const div = document.createElement("div");
     div.style.marginBottom = "8px";
     div.innerText = `${i+1}. LINE ID: ${r.lineId}, userId: ${r.userId}`;
@@ -87,14 +100,14 @@ function renderRequests(){
       const btn = document.createElement("button");
       btn.innerText = "ลบ";
       btn.style.marginLeft = "10px";
-      btn.onclick = ()=> deleteRequest(i);
+      btn.onclick = ()=> deleteRequest(key);
       div.appendChild(btn);
     }
     container.appendChild(div);
   });
 }
 
-// Admin add/remove whitelist
+// === Admin add/remove whitelist ===
 function addWhitelist(){
   if(currentUserId!==ADMIN) return alert("⛔ เฉพาะ admin เพิ่มได้");
   const name=document.getElementById("wlName").value.trim();
@@ -115,7 +128,7 @@ function removeWhitelist(){
   log(`🗑 ลบ whitelist: ${name} (${userId})`);
 }
 
-// Flex ใหม่
+// === Send Flex ===
 async function sendFlex(){
   if(!liff.isInClient()) return alert("⚠ เปิดผ่าน LINE");
   try{
@@ -179,51 +192,54 @@ async function sendFlex(){
   }
 }
 
-// Show userId ของตัวเอง
+// === Show UserId ===
 async function showMyUserId(){
   if(!liff.isInClient()) return alert("⚠ เปิดผ่าน LINE");
   try{
-    const profile=await liff.getProfile();
+    const profile = await liff.getProfile();
     currentUserId = profile.userId;
-    document.getElementById("myUserId").innerText=`🆔 UserId ของคุณคือ: ${currentUserId}`;
+    document.getElementById("myUserId").innerText = `🆔 UserId ของคุณคือ: ${currentUserId}`;
     log("โชว์ UserId ของตัวเอง: "+currentUserId);
     renderList();
-    renderRequests(); // render ใหม่หลังได้ currentUserId
+    // ดึง request จาก Firebase
+    const requestsRef = db.ref("requests");
+    requestsRef.on("value", snapshot => renderRequests(snapshot.val()));
   }catch(e){ logError("❌ ไม่สามารถดึง userId: "+e); }
 }
 
-// ส่งคำขอ
+// === Send Request ===
 async function sendRequest(){
   if(!liff.isInClient()) return alert("⚠ เปิดผ่าน LINE");
-  const lineId=document.getElementById("reqLineId").value.trim();
+  const lineId = document.getElementById("reqLineId").value.trim();
   if(!lineId) return alert("❌ กรุณากรอก LINE ID");
   try{
-    const profile=await liff.getProfile();
-    requests.push({lineId,userId:profile.userId});
-    localStorage.setItem("requests",JSON.stringify(requests));
+    const profile = await liff.getProfile();
+    const newReqRef = db.ref("requests").push();
+    await newReqRef.set({lineId, userId: profile.userId});
     alert("📨 ส่งคำขอเรียบร้อยแล้ว");
-    document.getElementById("reqLineId").value="";
-    renderRequests(); // render ให้ admin เห็นทันที
+    document.getElementById("reqLineId").value = "";
   }catch(e){ logError("❌ ส่งคำขอไม่สำเร็จ: "+e); }
 }
 
-// ลบคำขอตามลำดับ
-function deleteRequest(index){
+// === Delete Request ===
+function deleteRequest(key){
   if(currentUserId!==ADMIN) return alert("⛔ เฉพาะ admin ลบได้");
-  const removed=requests.splice(index,1);
-  localStorage.setItem("requests",JSON.stringify(requests));
-  log(`🗑 ลบคำขอ: ${removed[0].lineId} (${removed[0].userId})`);
-  renderRequests();
+  db.ref("requests/" + key).remove();
+  log(`🗑 ลบคำขอ: ${key}`);
 }
 
-// Init LIFF
+// === Init LIFF + Firebase ===
 liff.init({ liffId: "2008621627-1eN2VA2x" }).then(async ()=>{
   try{
     const profile = await liff.getProfile();
     currentUserId = profile.userId;
     log("LIFF Init สำเร็จ! UserId: "+currentUserId);
     renderList();
-    renderRequests(); // render ให้ admin เห็นทันที
+
+    // ดึง request จาก Firebase realtime
+    const requestsRef = db.ref("requests");
+    requestsRef.on("value", snapshot => renderRequests(snapshot.val()));
+
   }catch(e){ logError("❌ LIFF Init ไม่สำเร็จ: "+e); }
 });
 </script>
