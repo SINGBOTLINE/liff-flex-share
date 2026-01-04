@@ -1,53 +1,73 @@
-// server.js
-const express = require('express');
-const fs = require('fs');
-const cors = require('cors');
+const express = require("express");
+const axios = require("axios");
 const app = express();
-app.use(cors());
 app.use(express.json());
 
-const PORT = 3000;
-const FILE = 'whitelist.json';
+const LINE_ACCESS_TOKEN = "ใส่ Channel Access Token ของคุณที่นี่";
 
-// โหลด whitelist จากไฟล์
-function loadWhitelist() {
-  if (!fs.existsSync(FILE)) return [];
-  const data = fs.readFileSync(FILE);
-  return JSON.parse(data);
-}
+app.post("/push-flex", async (req, res) => {
+  const { userId, imageUrl, lineId } = req.body;
+  if (!userId || !imageUrl || !lineId) {
+    return res.status(400).json({ status: "error", message: "Missing fields" });
+  }
 
-// บันทึก whitelist ลงไฟล์
-function saveWhitelist(list) {
-  fs.writeFileSync(FILE, JSON.stringify(list, null, 2));
-}
+  const flexMsg = {
+    to: userId,
+    messages: [
+      {
+        type: "flex",
+        altText: "FLEX ฟรี สนใจติดต่อ ID: mc357.com",
+        contents: {
+          type: "carousel",
+          contents: [
+            {
+              type: "bubble",
+              size: "giga",
+              hero: {
+                type: "image",
+                url: imageUrl,
+                size: "full",
+                aspectRatio: "2:3",
+                aspectMode: "cover",
+                action: { type: "uri", uri: "https://line.me/ti/p/~" + lineId }
+              },
+              body: {
+                type: "box",
+                layout: "vertical",
+                contents: [
+                  { type: "text", text: "FLEX ฟรี", weight: "bold", size: "xl", color: "#0ff" },
+                  { type: "text", text: "สนใจติดต่อ ID: mc357.com", size: "md", margin: "md", color: "#fff" }
+                ]
+              },
+              footer: {
+                type: "box",
+                layout: "vertical",
+                contents: [
+                  {
+                    type: "button",
+                    style: "primary",
+                    label: "ติดต่อผู้สร้าง",
+                    action: { type: "uri", uri: "https://line.me/ti/p/~mc357.com" }
+                  }
+                ],
+                backgroundColor: "#000"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  };
 
-// GET whitelist
-app.get('/whitelist', (req, res) => {
-  const list = loadWhitelist();
-  res.json(list);
+  try {
+    await axios.post("https://api.line.me/v2/bot/message/push", flexMsg, {
+      headers: { Authorization: "Bearer " + LINE_ACCESS_TOKEN }
+    });
+    res.json({ status: "success" });
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+    res.status(500).json({ status: "error", message: "Push failed" });
+  }
 });
 
-// POST เพิ่ม user
-app.post('/whitelist', (req, res) => {
-  const { name, userId } = req.body;
-  if (!name || !userId) return res.status(400).json({ error: 'name and userId required' });
-  const list = loadWhitelist();
-  if (list.some(u => u.userId === userId)) return res.status(400).json({ error: 'userId already exists' });
-  list.push({ name, userId });
-  saveWhitelist(list);
-  res.json({ success: true, list });
-});
-
-// DELETE user
-app.delete('/whitelist', (req, res) => {
-  const { userId } = req.body;
-  if (!userId) return res.status(400).json({ error: 'userId required' });
-  let list = loadWhitelist();
-  list = list.filter(u => u.userId !== userId);
-  saveWhitelist(list);
-  res.json({ success: true, list });
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(3000, () => console.log("Server running on port 3000"));
