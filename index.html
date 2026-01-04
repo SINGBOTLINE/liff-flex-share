@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Flex + Admin + Request</title>
+<title>Flex Generator</title>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <style>
@@ -19,39 +19,43 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow-y: auto;
   backdrop-filter: brightness(0.5);
+  overflow:auto;
 }
 
+h2 { font-size:20px; margin-top:12px; }
+
 .panel {
-  width: 90%;
-  background: rgba(0,0,0,0.75);
-  padding: 18px;
-  border-radius: 10px;
-  margin-top: 20px;
+  width: 85%;
+  background: rgba(0,0,0,0.7);
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 12px;
   text-align: left;
 }
 
+.panel h3 { font-size:16px; margin-bottom:6px; }
+
 input {
   width: 100%;
-  padding: 12px;
-  border-radius: 6px;
+  padding: 10px;
+  border-radius: 5px;
   border: 1px solid #0ff;
-  font-size: 16px;
-  margin-top: 8px;
+  font-size: 14px;
+  margin-top: 5px;
   background: #000;
   color: #0ff;
 }
 
 button {
   width: 100%;
-  padding: 12px;
-  margin-top: 12px;
-  border-radius: 6px;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 5px;
   border: 1px solid #0ff;
   background: #000;
   color: #0ff;
-  font-size: 18px;
+  font-size: 15px;
   cursor: pointer;
 }
 
@@ -60,42 +64,22 @@ button:hover {
   color: #000;
 }
 
-#greeting {
-  margin-top: 30px;
-  font-size: 22px;
-  font-weight: bold;
-  color: #fff;
+#myUserId, #logOutput {
+  font-size:13px;
+  width:85%;
+  background:rgba(0,0,0,0.6);
+  padding:10px;
+  border-radius:6px;
+  margin-top:10px;
+  color:#0f0;
+  text-align:left;
+  word-break:break-all;
 }
 
-#logOutput, #myUserId {
-  margin-top: 10px;
-  font-weight: bold;
-  white-space: pre-line;
-  color: #0f0;
-  text-align: left;
-  width: 90%;
-  background: rgba(0,0,0,0.6);
-  padding: 15px;
-  border-radius: 8px;
-  word-break: break-all;
-}
-
-.qr {
-  margin-top: 40px;
-  text-align: center;
-}
-
-.qr img {
-  border-radius: 10px;
-  border: 2px solid #0ff;
-  width: 180px;
-}
-
-.qr p {
-  color: #0ff;
-  font-weight: bold;
-  margin-top: 10px;
-}
+.qr { margin-top:25px; }
+.qr h3 { font-size:15px; }
+.qr img { width:150px; border-radius:8px; border:2px solid #0ff; }
+.qr p { font-size:13px; color:#0ff; font-weight:bold; margin-top:6px; }
 </style>
 </head>
 
@@ -105,51 +89,42 @@ button:hover {
 
 <div class="panel">
   <h3>✨ Flex Generator</h3>
-  <input id="genInput" placeholder="วาง: ImageURL + เว้นวรรค + LINE ID" />
-  <button onclick="sendFlex()">สร้างและแชร์ Flex</button>
+  <input id="imageUrl" placeholder="วางลิงก์รูปภาพที่นี่" />
+  <input id="lineId" placeholder="ใส่ LINE ID ที่นี่ (เช่น mc357.com)" />
+  <button onclick="sendFlex()">แชร์ Flex</button>
 </div>
 
 <div class="panel">
-  <h3>🔍 ตรวจสอบ UserId ของคุณ</h3>
-  <button onclick="showMyUserId()">กดเพื่อดู UserId ของคุณ</button>
+  <h3>🔍 เช็ค UserId</h3>
+  <button onclick="showMyUserId()">ดู UserId</button>
   <div id="myUserId"></div>
-</div>
-
-<div class="panel">
-  <h3>📨 ส่งคำขอใช้งานระบบ</h3>
-  <input id="reqLineId" placeholder="กรอก LINE ID ของคุณ" />
-  <button onclick="sendRequest()">ส่งคำขอ</button>
 </div>
 
 <button onclick="contactCreator()">📩 ติดต่อผู้สร้าง</button>
 
-<div class="qr">
-  <h3>📱 แสกนเพื่อติดต่อผู้สร้าง</h3>
-  <img src="https://img5.pic.in.th/file/secure-sv1/IMG_12468d6ce5b9565e3489.jpeg"/>
-  <p>แสกนเพื่อติดต่อผู้สร้าง</p>
-</div>
-
-<h3>📌 Log (เฉพาะ admin)</h3>
-<div id="logOutput"></div>
-
 <div class="panel">
-  <h3>🛡 Whitelist (กำหนดสิทธิ์ใช้ Flex)</h3>
-  <p>"Admin","Ua48c35a3cd7641afee1d85c317032ad5"</p>
-  <p>"User1","U0000000000000000000000000000000"</p>
-  <p>"User2","U9999999999999999999999999999999"</p>
-  <p>➕ วิธีเพิ่มคนที่ 3: แก้ในโค้ดตรง whitelist</p>
+  <h3>🛡 ผู้มีสิทธิ์ใช้งาน</h3>
+  <p>"HELLO","Ua48c35a3cd7641afee1d85c317032ad5"</p>
+  <p>"ชื่อระบบ1","UDEMO1xxxxxxxxxxxxxxxxxxxxxxxx"</p>
+  <p>"ผู้ใช้2","UDEMO2xxxxxxxxxxxxxxxxxxxxxxxx"</p>
 </div>
+
+<div class="qr">
+  <h3>📱 Scan ติดต่อผู้สร้าง</h3>
+  <img src="https://img5.pic.in.th/file/secure-sv1/IMG_12468d6ce5b9565e3489.jpeg"/>
+  <p>แสกนเพื่อติดต่อ ID: mc357.com</p>
+</div>
+
+<div id="logOutput"></div>
 
 <script>
 const ADMIN = "Ua48c35a3cd7641afee1d85c317032ad5";
 const whitelist = [
   "Ua48c35a3cd7641afee1d85c317032ad5", // Admin
-  "U0000000000000000000000000000000",   // User1
-  "U9999999999999999999999999999999",   // User2
-  "U12345678901234567890123456789012"   // User3 จำลอง (คุณแก้เองได้)
+  "UDEMO1xxxxxxxxxxxxxxxxxxxxxxxx",
+  "UDEMO2xxxxxxxxxxxxxxxxxxxxxxxx"
 ];
 
-let requests = JSON.parse(localStorage.getItem("requests") || "[]");
 let currentUserId = "";
 
 function log(msg){ document.getElementById("logOutput").innerText += msg + "\n"; }
@@ -160,32 +135,44 @@ async function sendFlex(){
   try{
     const profile = await liff.getProfile();
     currentUserId = profile.userId;
-    log("UserId: " + currentUserId);
 
     if(!whitelist.includes(currentUserId)){
       logError("⛔ ไม่มีสิทธิ์แชร์ Flex");
       return alert("⛔ คุณไม่มีสิทธิ์แชร์ Flex");
     }
 
-    const raw=document.getElementById("genInput").value.trim();
-    const parts=raw.split(" ");
-    if(parts.length!==2) return alert("❌ format ผิด");
-    const [imageUrl,lineId]=parts;
+    const imageUrl = document.getElementById("imageUrl").value.trim();
+    const lineId = document.getElementById("lineId").value.trim();
+    if(!imageUrl || !lineId) return alert("❌ ใส่ข้อมูลให้ครบ");
 
-    const flexMsg={
-      type:"flex",
-      altText:"FLEX ฟรี สนใจติดต่อ ID: mc357.com",
-      contents:{
-        type:"carousel",
-        contents:[{
-          type:"bubble",
-          size:"giga",
-          hero:{type:"image",url:imageUrl,size:"full",aspectRatio:"2:3",aspectMode:"cover",
-          action:{type:"uri",uri:`http://line.me/ti/p/~${lineId}`}},
-          footer:{type:"box",layout:"vertical",spacing:"sm",
-            contents:[{type:"button",style:"primary",height:"sm",action:{type:"uri",label:"ติดต่อผู้สร้าง",uri:`http://line.me/ti/p/~${lineId}`}}],
-            backgroundColor:"#000000"}
-        }]
+    const flexMsg = {
+      "type": "flex",
+      "altText": "FLEX ฟรี สนใจติดต่อ ID: mc357.com",
+      "contents": {
+        "type": "carousel",
+        "contents": [
+          {
+            "type": "bubble",
+            "size": "giga",
+            "body": {
+              "type": "box",
+              "layout": "vertical",
+              "contents": [
+                {
+                  "type": "image",
+                  "url": imageUrl,
+                  "size": "full",
+                  "aspectMode": "cover",
+                  "aspectRatio": "2:3",
+                  "gravity": "top"
+                }
+              ],
+              "paddingAll": "0px",
+              "borderWidth": "4px",
+              "borderColor": "#000000"
+            }
+          }
+        ]
       }
     };
 
@@ -193,33 +180,13 @@ async function sendFlex(){
     log("✨ แชร์ Flex สำเร็จ!");
     alert("✨ แชร์ Flex สำเร็จ!");
   }catch(e){
-    logError("แชร์ Flex error: "+e);
+    logError("error: "+e);
   }
 }
 
 async function showMyUserId(){
-  try{
-    const profile = await liff.getProfile();
-    document.getElementById("myUserId").innerText="🆔 "+profile.userId;
-  }catch(e){ alert("error"); }
-}
-
-async function sendRequest(){
-  try{
-    const profile = await liff.getProfile();
-    const lineId=document.getElementById("reqLineId").value.trim();
-    if(!lineId) return alert("❌ ใส่ LINE ID");
-    requests.push({lineId,userId:profile.userId});
-    localStorage.setItem("requests",JSON.stringify(requests));
-    if(currentUserId===ADMIN) renderRequests();
-    alert("📨 ส่งคำขอแล้ว");
-  }catch(e){ alert("error"); }
-}
-
-function renderRequests(){
-  if(currentUserId!==ADMIN) return;
-  const view = requests.map((r,i)=>`${i+1}. ${r.lineId} (${r.userId})`).join("\n");
-  document.getElementById("logOutput").innerText += "\n📨 Requests:\n"+view;
+  const p = await liff.getProfile();
+  document.getElementById("myUserId").innerText = "UserId: " + p.userId;
 }
 
 function contactCreator(){
@@ -227,9 +194,9 @@ function contactCreator(){
 }
 
 liff.init({ liffId: "2008621627-1eN2VA2x" }).then(async ()=>{
-  const p=await liff.getProfile();
-  document.getElementById("greeting").innerText="สวัสดีคุณ "+p.displayName;
-  currentUserId=p.userId;
+  const p = await liff.getProfile();
+  document.getElementById("greeting").innerText = "สวัสดีคุณ " + p.displayName;
+  currentUserId = p.userId;
 });
 </script>
 
