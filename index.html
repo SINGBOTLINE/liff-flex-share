@@ -62,30 +62,21 @@ button:hover {
   font-size:14px;
   word-break:break-all;
 }
-.qr {
-  margin-top:30px;
-}
-.qr img {
-  border-radius:10px;
-  border:2px solid #0ff;
-}
-.qr p {
-  color:#0ff;
-  font-weight:bold;
-}
+.qr { margin-top:30px; text-align:center; }
+.qr img { border-radius:10px; border:2px solid #0ff; width:180px; }
 </style>
 </head>
 
 <body>
 
 <h2 id="greeting">สวัสดีคุณ...</h2>
-<h4 style="color:#0ff;">ระบบพร้อมให้บริการ</h4>
+<h4 style="color:#0ff;">HELLO ยินดีให้บริการ</h4>
 
 <div class="panel">
   <h3>Flex Generator</h3>
   <input id="imageUrl" placeholder="ใส่ลิงก์รูปภาพ" />
   <input id="lineId" placeholder="LINE ID (เช่น mc357.com)" />
-  <button onclick="sendFlex()">ส่ง Flex</button>
+  <button onclick="requestPushFlex()">ส่ง Flex</button>
 </div>
 
 <div class="panel">
@@ -100,21 +91,18 @@ button:hover {
 </div>
 
 <div class="panel">
-  <h3>ระบบสิทธิ์การใช้งาน</h3>
-  <p>เฉพาะผู้ใช้ที่ถูกเพิ่ม UserId เท่านั้นจึงจะส่ง Flex ได้</p>
-  <p>Admin: Ua48c35a3cd7641afee1d85c317032ad5</p>
+  <h3>ระบบสิทธิ์</h3>
+  <p>FLEX ฟรี สนใจติดต่อ ID: mc357.com</p>
 </div>
 
 <div class="qr">
-  <h3>แสกนเพื่อติดต่อผู้สร้าง</h3>
-  <img src="https://img5.pic.in.th/file/secure-sv1/IMG_12468d6ce5b9565e3489.jpeg" width="220px"/>
   <p>แสกนเพื่อติดต่อผู้สร้าง</p>
+  <img src="https://img5.pic.in.th/file/secure-sv1/IMG_12468d6ce5b9565e3489.jpeg"/>
+  <p style="color:#0ff;">แสกนเพื่อติดต่อผู้สร้าง</p>
 </div>
 
 <script>
 const ADMIN = "Ua48c35a3cd7641afee1d85c317032ad5";
-
-// ใส่ UserId สำคัญเท่านั้น
 const whitelist = [
   { name: "Admin", userId: "Ua48c35a3cd7641afee1d85c317032ad5" },
   { name: "ระบบ1", userId: "U1111111111111111111111111111111" }
@@ -122,62 +110,27 @@ const whitelist = [
 
 let currentUserId = "";
 
-async function sendFlex(){
-  if(!liff.isInClient()) return alert("กรุณาเปิดผ่าน LINE");
-  if(!liff.isLoggedIn()) return liff.login();
-
-  const profile = await liff.getProfile();
-  currentUserId = profile.userId;
+async function requestPushFlex(){
+  const imageUrl = document.getElementById("imageUrl").value.trim();
+  const lineId = document.getElementById("lineId").value.trim();
+  if(!imageUrl || !lineId) return alert("❌ ใส่ข้อมูลให้ครบ");
 
   const allowed = whitelist.some(w => w.userId === currentUserId);
   if(!allowed && currentUserId !== ADMIN){
-    document.getElementById("noAccessPanel").style.display = "block";
-    return alert("คุณไม่มีสิทธิ์ส่ง Flex");
+    document.getElementById("noAccessPanel").style.display="block";
+    return alert("⛔ คุณไม่มีสิทธิ์ส่ง Flex");
   }
 
-  const imageUrl = document.getElementById("imageUrl").value.trim();
-  const lineId = document.getElementById("lineId").value.trim();
-  if(!imageUrl || !lineId) return alert("ใส่ข้อมูลให้ครบ");
-
-  const flexMsg = {
-    type: "flex",
-    altText: "FLEX ฟรี สนใจติดต่อ ID: mc357.com",
-    contents: {
-      type: "bubble",
-      hero: {
-        type: "image",
-        url: imageUrl,
-        size: "full",
-        aspectRatio: "2:3",
-        aspectMode: "cover",
-        action: { type: "uri", uri: "https://line.me/ti/p/~" + lineId }
-      },
-      body: {
-        type: "box",
-        layout: "vertical",
-        contents: [
-          { type: "text", text: "FLEX ฟรี", weight: "bold", size: "xl", color: "#0ff" },
-          { type: "text", text: "สนใจติดต่อ ID: mc357.com", size: "md", margin: "md", color: "#fff" }
-        ]
-      },
-      footer: {
-        type: "box",
-        layout: "vertical",
-        contents: [
-          {
-            type: "button",
-            style: "primary",
-            label: "ติดต่อผู้สร้าง",
-            action: { type: "uri", uri: "https://line.me/ti/p/~mc357.com" }
-          }
-        ],
-        backgroundColor: "#000"
-      }
-    }
-  };
-
-  await liff.shareTargetPicker([flexMsg]);
-  alert("ส่ง Flex สำเร็จ!");
+  try{
+    await axios.post("https://your-server-url.com/push-flex", {
+      userId: currentUserId,
+      imageUrl,
+      lineId
+    });
+    alert("ส่ง Flex สำเร็จ!");
+  }catch(e){
+    alert("❌ Push error: " + e);
+  }
 }
 
 async function showMyUserId(){
@@ -196,5 +149,6 @@ liff.init({ liffId: "2008621627-1eN2VA2x" }).then(async ()=>{
 });
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </body>
 </html>
