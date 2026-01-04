@@ -22,7 +22,6 @@ body {
   overflow:auto;
   backdrop-filter:brightness(0.6);
 }
-
 input {
   width:90%;
   padding:14px;
@@ -33,7 +32,6 @@ input {
   background:#222;
   color:#fff;
 }
-
 button {
   font-size:18px;
   padding:12px 24px;
@@ -45,12 +43,10 @@ button {
   color:#0ff;
   border:1px solid #0ff;
 }
-
 button:hover {
   background:#0ff;
   color:#000;
 }
-
 .panel {
   width:95%;
   background:rgba(0,0,0,0.7);
@@ -60,11 +56,7 @@ button:hover {
   text-align:left;
   white-space:pre-line;
 }
-
-h2, h3, h4, p { margin:8px 0; }
-
-#myUserId, #list { margin-top:10px; font-weight:bold; color:#0f0; }
-
+#myUserId { margin-top:10px; font-weight:bold; color:#0f0; }
 .qr { margin-top:30px; }
 .qr img { border-radius:10px; border:2px solid #0ff; }
 .qr p { color:#0ff; font-weight:bold; }
@@ -92,27 +84,8 @@ h2, h3, h4, p { margin:8px 0; }
 <button onclick="contactCreator()">📩 ติดต่อผู้สร้าง</button>
 
 <div class="panel">
-  <h3>🛡 ระบบสิทธิ์การใช้งาน</h3>
-  <p>เฉพาะผู้ใช้ที่ถูกเพิ่ม UserId เท่านั้นจึงจะสามารถใช้งานฟังก์ชัน Flex ได้</p>
-
-  <h4>👑 Admin</h4>
-  "HELLO","Ua48c35a3cd7641afee1d85c317032ad5"
-
-  <h4>👤 User ตัวอย่าง</h4>
-  "DemoUser","Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-</div>
-
-<div class="panel">
-  <h3>➕ เพิ่มผู้ใช้ (เฉพาะ admin)</h3>
-  <input id="wlName" placeholder="ชื่อผู้ใช้ LINE" />
-  <input id="wlUserId" placeholder="UserId LINE" />
-  <button onclick="addWhitelist()">เพิ่มสิทธิ์ผู้ใช้</button>
-  <div id="list"></div>
-</div>
-
-<div class="panel" id="noAccessPanel" style="display:none; color:#ff4;">
-  <h3>⛔ คุณไม่มีสิทธิ์ใช้งาน Flex</h3>
-  <button onclick="goAddFriend()">➕ ติดต่อแอดมิน (เพิ่มเพื่อน LINE)</button>
+  <h3>🛡 Whitelist ผู้ได้รับสิทธิ์</h3>
+  <p id="whitelistView"></p>
 </div>
 
 <div class="qr">
@@ -123,39 +96,29 @@ h2, h3, h4, p { margin:8px 0; }
 
 <script>
 const ADMIN = "Ua48c35a3cd7641afee1d85c317032ad5";
-let whitelist = JSON.parse(localStorage.getItem("whitelist") || "[]");
-let currentUserId = "";
 
-// Render whitelist
-function renderList(){
-  const view = whitelist.map(w=>`"${w.name}","${w.userId}"`).join("\n");
-  document.getElementById("list").innerText = view || "ยังไม่มีผู้ได้รับสิทธิ์";
-}
+// 🔹 Whitelist ใส่ใน HTML โดยตรงที่นี่
+const whitelist = [
+  { name: "ระบบ1", userId: "U1234567890abcdef1234567890abcdef" },
+  { name: "DemoUser", userId: "Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" },
+  { name: "ผู้ใช้3", userId: "U33333333333333333333333333333333" }
+];
 
-// Add whitelist
-function addWhitelist(){
-  if(currentUserId !== ADMIN) return alert("⛔ เฉพาะ admin เพิ่มได้");
-  const name = document.getElementById("wlName").value.trim();
-  const userId = document.getElementById("wlUserId").value.trim();
-  if(!name || !userId) return alert("❌ กรุณากรอกให้ครบ");
-  whitelist.push({name,userId});
-  localStorage.setItem("whitelist", JSON.stringify(whitelist));
-  renderList();
-  alert("✅ เพิ่มสิทธิ์ผู้ใช้เรียบร้อย");
-}
+// แสดง whitelist ในหน้าเว็บ
+document.getElementById("whitelistView").innerText =
+  whitelist.map(w => `"${w.name}","${w.userId}"`).join("\n");
 
-// Share Flex
+// แชร์ Flex เฉพาะผู้มีสิทธิ์
 async function sendFlex(){
   if(!liff.isInClient()) return alert("⚠ กรุณาเปิดผ่าน LINE");
   if(!liff.isLoggedIn()) return liff.login();
   try{
     const profile = await liff.getProfile();
-    currentUserId = profile.userId;
+    const currentUserId = profile.userId;
 
-    const allowed = whitelist.some(w=>w.userId === currentUserId);
-    if(!allowed && currentUserId !== ADMIN){
-      document.getElementById("noAccessPanel").style.display="block";
-      return alert("⛔ คุณไม่มีสิทธิ์ใช้งาน Flex");
+    const allowed = whitelist.some(w => w.userId === currentUserId) || currentUserId === ADMIN;
+    if(!allowed){
+      return alert("⛔ คุณไม่มีสิทธิ์ส่ง Flex\nกรุณาติดต่อผู้สร้าง");
     }
 
     const imageUrl = document.getElementById("imageUrl").value.trim();
@@ -164,7 +127,7 @@ async function sendFlex(){
 
     const flexMsg = {
       type:"flex",
-      altText:"Flex Message",
+      altText:`Flex by ${profile.displayName}`,
       contents:{
         type:"bubble",
         size:"giga",
@@ -190,54 +153,41 @@ async function sendFlex(){
       }
     };
 
-    await liff.shareTargetPicker([flexMsg]);
-    alert("✨ แชร์ Flex สำเร็จ!");
+    const result = await liff.shareTargetPicker([flexMsg]);
+    if(result){
+      alert("✨ ส่ง Flex ออกเรียบร้อยแล้ว!");
+      console.log("Flex sent");
+    } else {
+      alert("⚠ คุณยังไม่ได้กดส่ง Flex");
+      console.warn("User not confirm send");
+    }
+
   }catch(e){
     alert("❌ เกิดข้อผิดพลาด: " + e);
   }
 }
 
-// Show my userId
+// โชว์ userId ของตัวเอง
 async function showMyUserId(){
   if(!liff.isInClient()) return alert("⚠ เปิดผ่าน LINE");
   if(!liff.isLoggedIn()) liff.login();
   try{
     const profile = await liff.getProfile();
-    currentUserId = profile.userId;
-    document.getElementById("myUserId").innerText = "🆔 UserId ของคุณคือ: " + currentUserId;
+    document.getElementById("myUserId").innerText = "🆔 UserId ของคุณคือ: " + profile.userId;
   }catch(e){ alert("❌ ดึง userId ไม่ได้"); }
 }
 
-// Contact creator
+// ปุ่มติดต่อผู้สร้าง
 function contactCreator(){
   window.location.href = "http://line.me/ti/p/~mc357.com";
 }
 
-// Add friend admin if no access
-function goAddFriend(){
-  window.location.href = "http://line.me/ti/p/~mc357.com";
-}
-
-// Go add friend
-function goAddFriend(){
-  window.location.href = "http://line.me/ti/p/~mc357.com";
-}
-
-// Init LIFF + set greeting name
+// LIFF init + แสดงชื่อ
 liff.init({ liffId: "2008621627-1eN2VA2x" }).then(async ()=>{
   if(!liff.isLoggedIn()) liff.login();
   try{
     const profile = await liff.getProfile();
-    currentUserId = profile.userId;
-
-    document.getElementById("greeting").innerText = "สวัสดีคุณ " + profile.displayName + " 👋";
-
-    const allowed = whitelist.some(w=>w.userId === currentUserId);
-    if(!allowed && currentUserId !== ADMIN){
-      document.getElementById("noAccessPanel").style.display="block";
-    }
-
-    renderList();
+    document.getElementById("greeting").innerText = `สวัสดีคุณ ${profile.displayName} 👋`;
   }catch(e){ alert("❌ LIFF Init Error"); }
 });
 </script>
