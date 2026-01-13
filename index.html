@@ -1,182 +1,112 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>🖤➣ໂのနတՃั่Ձ¹✯🖤</title>
+<meta charset="UTF-8">
+<title>🔐 Protected LIFF</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <style>
-body {
-  font-family: sans-serif;
+body{
   margin:0;
-  padding:0;
-  height:100vh;
-  background: url('https://i.postimg.cc/j5Gkxs3K/IMG-1275.gif') no-repeat center center fixed;
-  background-size: cover;
+  min-height:100vh;
+  background:#000 url('https://i.postimg.cc/j5Gkxs3K/IMG-1275.gif') center/cover;
   color:#fff;
-  text-align:center;
+  font-family:sans-serif;
   display:flex;
-  flex-direction:column;
+  justify-content:center;
   align-items:center;
-  overflow:auto;
-  backdrop-filter:brightness(0.6);
 }
-
-.panel {
-  width:92%;
+.panel{
+  width:90%;
   max-width:360px;
-  background:rgba(0,0,0,0.75);
-  padding:12px 15px;
+  background:rgba(0,0,0,.75);
+  padding:15px;
   border-radius:10px;
-  margin-top:15px;
-  font-size:14px;
+  text-align:center;
 }
-
-input {
-  width:95%;
+input,button{
+  width:100%;
+  margin-top:10px;
   padding:10px;
-  border-radius:5px;
-  border:none;
-  font-size:14px;
-  margin-top:6px;
-  background:#222;
-  color:#fff;
-}
-
-button {
   font-size:15px;
-  padding:8px 18px;
-  border-radius:5px;
-  border:1px solid #0ff;
+}
+button{
   background:#000;
   color:#0ff;
+  border:1px solid #0ff;
+}
+button:hover{background:#0ff;color:#000}
+.qr img{
+  width:160px;
+  border:2px solid #0ff;
+  border-radius:8px;
   margin-top:10px;
-  cursor: pointer;
 }
-
-button:hover {
-  background:#0ff;
-  color:#000;
-}
-
-.qr { margin-top:20px; }
-.qr img { width:150px; border-radius:8px; border:2px solid #0ff; }
-.qr p { font-size:13px; color:#0ff; font-weight:bold; }
-#myUserId { margin-top:8px; font-size:13px; color:#0f0; font-weight:bold; }
 </style>
 </head>
 
 <body>
 
-<h3 id="greeting" style="margin-top:15px;">สวัสดีคุณ...</h3>
-
-<div class="panel" style="text-align:center;">
-  <button onclick="contactCreator()">➕ติดต่อผู้สร้างระบบ (คลิก!)</button>
+<!-- 🔐 ใส่รหัส -->
+<div class="panel" id="loginPanel">
+  <h3>🔐 ใส่รหัสผ่าน</h3>
+  <input type="password" id="pass" placeholder="รหัสผ่าน">
+  <button onclick="check()">เข้าใช้งาน</button>
 </div>
 
-<div class="panel">
-  <p style="margin-bottom: 5px; color: #0ff;">ใส่ลิงก์รูปภาพ เว้นวรรค ตามด้วยไอดีไลน์</p>
-  <input id="genInput" placeholder="URLรูปภาพ ไอดีไลน์" />
-  <button onclick="sendFlex()">แชร์...Flex</button>
-  <button onclick="window.location.href='https://pic.in.th/?lang=th'" style="border-color: #ff00ff; color: #ff00ff; margin-left: 5px;">ฝากรูปภาพ</button>
+<!-- ❌ ไม่มีสิทธิ์ -->
+<div class="panel" id="denyPanel" style="display:none">
+  <h3>⛔ ไม่มีสิทธิ์เข้าใช้งาน</h3>
+  <button onclick="contact()">➕ แอด LINE ผู้สร้าง</button>
+  <div class="qr">
+    <img src="https://img5.pic.in.th/file/secure-sv1/IMG_12468d6ce5b9565e3489.jpeg">
+    <p>สแกนเพื่อแอดไลน์</p>
+  </div>
 </div>
 
-<div class="panel">
-  <button onclick="checkUserId()">🔍 Check UserId</button>
-  <div id="myUserId"></div>
-</div>
-
-<div class="qr">
-  <img src="https://img5.pic.in.th/file/secure-sv1/IMG_12468d6ce5b9565e3489.jpeg"/>
-  <p>แสกนติดต่อผู้สร้าง</p>
+<!-- ✅ หน้าใช้งาน -->
+<div class="panel" id="mainPanel" style="display:none">
+  <h3>✅ เข้าสู่ระบบแล้ว</h3>
+  <p id="user"></p>
 </div>
 
 <script>
-// LIFF ID เดิมของคุณ
-const MY_LIFF_ID = "2008621627-1eN2VA2x";
+const LIFF_ID = "2008621627-1eN2VA2x";
+const PASSWORD = "357000";
+const ADMIN_LINE = "mc357.com";
 
-// เริ่มต้นระบบ LIFF
-liff.init({ liffId: MY_LIFF_ID }).then(async ()=>{
-  if(!liff.isLoggedIn()) {
-    liff.login();
-  } else {
-    const profile = await liff.getProfile();
-    document.getElementById("greeting").innerText = "สวัสดีคุณ " + profile.displayName;
-  }
-}).catch((err) => {
-  console.log("LIFF Initialization failed ", err);
-});
+const WHITELIST = [
+ "Ua48c35a3cd7641afee1d85c317032ad5",
+ "Uffa99b9ba90b2d097eb5300c6a521560"
+];
 
-// ฟังก์ชันเช็ค UserId สำหรับแสดงผลเฉยๆ
-async function checkUserId(){
-  try {
-    const profile = await liff.getProfile();
-    document.getElementById("myUserId").innerText = `"${profile.displayName}","${profile.userId}"`;
-  } catch (err) {
-    alert("กรุณาล็อกอินก่อนครับ");
+liff.init({ liffId: LIFF_ID });
+
+async function check(){
+  if(document.getElementById("pass").value !== PASSWORD){
+    return deny();
   }
+
+  if(!liff.isLoggedIn()) liff.login();
+  const p = await liff.getProfile();
+
+  if(!WHITELIST.includes(p.userId)){
+    return deny();
+  }
+
+  document.getElementById("loginPanel").style.display="none";
+  document.getElementById("mainPanel").style.display="block";
+  document.getElementById("user").innerText = "สวัสดี " + p.displayName;
 }
 
-// ฟังก์ชันส่ง Flex (เปิดให้ทุกคนใช้ได้)
-async function sendFlex(){
-  if(!liff.isInClient()) {
-    return alert("⚠ กรุณาเปิดผ่านแอป LINE เท่านั้น");
-  }
-
-  const raw = document.getElementById("genInput").value.trim();
-  const parts = raw.split(" ");
-  
-  if(parts.length < 2) {
-    return alert("❌ กรุณากรอกข้อมูลให้ครบ\nรูปแบบ: ลิงก์รูปภาพ ไอดีไลน์");
-  }
-
-  const [imageUrl, lineId] = parts;
-
-  const flexMsg = {
-    "type": "flex",
-    "altText": "FLEX ฟรี สนใจติดต่อ ID: mc357.com",
-    "contents": {
-      "type": "carousel",
-      "contents": [
-        {
-          "type": "bubble",
-          "size": "giga",
-          "hero": {
-            "type": "image",
-            "url": imageUrl,
-            "size": "full",
-            "aspectMode": "cover",
-            "aspectRatio": "2:3",
-            "gravity": "top"
-          },
-          "action": {
-            "type": "uri",
-            "uri": "https://line.me/ti/p/~" + lineId
-          }
-        }
-      ]
-    }
-  };
-
-  try {
-    // ตรวจสอบว่าฟีเจอร์แชร์เปิดใช้งานหรือไม่
-    if (liff.isApiAvailable('shareTargetPicker')) {
-      const result = await liff.shareTargetPicker([flexMsg]);
-      if (result) {
-        alert("✨ แชร์ Flex สำเร็จ!");
-      }
-    } else {
-      alert("❌ ระบบ ShareTargetPicker ยังไม่เปิดใช้งานใน LINE Console");
-    }
-  } catch (error) {
-    alert("❌ เกิดข้อผิดพลาด: " + error.message);
-  }
+function deny(){
+  document.getElementById("loginPanel").style.display="none";
+  document.getElementById("denyPanel").style.display="block";
 }
 
-// ติดต่อผู้สร้าง
-function contactCreator(){
-  window.location.href = "http://line.me/ti/p/~mc357.com";
+function contact(){
+  location.href = "https://line.me/ti/p/~" + ADMIN_LINE;
 }
 </script>
 
