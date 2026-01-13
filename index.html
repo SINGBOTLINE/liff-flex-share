@@ -1,186 +1,179 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>🖤➣ໂのနတՃั่Ձ¹✯🖤</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>😍🖤➣ໂのနတՃั่Ձ¹✯🖤😍</title>
+
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <style>
-body {
-  font-family: sans-serif;
+body{
   margin:0;
-  padding:0;
-  height:100vh;
-  background: url('https://i.postimg.cc/j5Gkxs3K/IMG-1275.gif') no-repeat center center fixed;
-  background-size: cover;
+  min-height:100vh;
+  font-family:sans-serif;
+  background:url('https://i.postimg.cc/j5Gkxs3K/IMG-1275.gif') center/cover fixed;
   color:#fff;
-  text-align:center;
   display:flex;
-  flex-direction:column;
+  justify-content:center;
   align-items:center;
-  overflow:auto;
-  backdrop-filter:brightness(0.6);
 }
-
-/* ทำให้ UI เล็กลง */
-.panel {
+.panel{
   width:92%;
   max-width:360px;
-  background:rgba(0,0,0,0.75);
-  padding:12px 15px;
+  background:rgba(0,0,0,.75);
+  padding:15px;
   border-radius:10px;
-  margin-top:15px;
-  font-size:14px;
+  text-align:center;
 }
-
-input {
+input{
   width:95%;
   padding:10px;
-  border-radius:5px;
-  border:none;
-  font-size:14px;
-  margin-top:6px;
+  margin-top:8px;
   background:#222;
   color:#fff;
-}
-
-button {
-  font-size:15px;
-  padding:8px 18px;
+  border:none;
   border-radius:5px;
-  border:1px solid #0ff;
+}
+button{
+  margin-top:10px;
+  padding:10px;
+  font-size:15px;
   background:#000;
   color:#0ff;
-  margin-top:10px;
+  border:1px solid #0ff;
+  border-radius:5px;
 }
-
-button:hover {
+button:hover{
   background:#0ff;
   color:#000;
 }
-
-.qr { margin-top:20px; }
-.qr img { width:150px; border-radius:8px; border:2px solid #0ff; }
-.qr p { font-size:13px; color:#0ff; font-weight:bold; }
-#myUserId { margin-top:8px; font-size:13px; color:#0f0; font-weight:bold; }
-#noAccessPanel { display:none; }
+.qr img{
+  width:160px;
+  margin-top:10px;
+  border:2px solid #0ff;
+  border-radius:8px;
+}
+.hidden{display:none;}
 </style>
 </head>
 
 <body>
 
-<h3 id="greeting" style="margin-top:15px;">สวัสดีคุณ...</h3>
-
-<div class="panel" style="text-align:center;">
-  <button onclick="contactCreator()">➕ติดต่อผู้สร้างระบบ (คลิก!)</button>
+<!-- 🔐 หน้าใส่รหัส -->
+<div class="panel" id="loginPanel">
+  <h3>🔐 ใส่รหัสผ่าน</h3>
+  <input type="password" id="password" placeholder="รหัสผ่านเข้าใช้งาน">
+  <button onclick="checkAccess()">เข้าใช้งาน</button>
 </div>
 
-<div class="panel">
-  <p style="margin-bottom: 5px; color: #0ff;">ใส่ลิงก์รูปภาพ เว้นวรรค ตามด้วยไอดีไลน์</p>
-  <input id="genInput" placeholder="URLรูปภาพ ไอดีไลน์" />
+<!-- ❌ ไม่มีสิทธิ์ -->
+<div class="panel hidden" id="denyPanel">
+  <h3>⛔ ไม่มีสิทธิ์เข้าใช้งาน</h3>
+  <p style="font-size:13px">กรุณาติดต่อผู้สร้างระบบ</p>
+  <button onclick="contactCreator()">➕ แอด LINE ผู้สร้าง</button>
+  <div class="qr">
+    <img src="https://img5.pic.in.th/file/secure-sv1/IMG_12468d6ce5b9565e3489.jpeg">
+    <p>สแกนเพื่อแอดไลน์</p>
+  </div>
+</div>
+
+<!-- ✅ หน้าใช้งานจริง -->
+<div class="panel hidden" id="mainPanel">
+  <h3 id="greeting">สวัสดี</h3>
+
+  <p style="color:#0ff;font-size:13px">
+    ใส่ลิงก์รูปภาพ เว้นวรรค ตามด้วยไอดีไลน์
+  </p>
+
+  <input id="genInput" placeholder="URLรูปภาพ ไอดีไลน์">
+
   <button onclick="sendFlex()">แชร์ Flex</button>
-  <button onclick="window.location.href='https://pic.in.th/?lang=th'" style="border-color: #ff00ff; color: #ff00ff; margin-left: 5px;">ฝากรูปภาพ</button>
-</div>
-
-<div class="panel">
-  <button onclick="checkUserId()">🔍 Check UserId</button>
-  <div id="myUserId"></div>
-</div>
-
-<div class="panel" id="noAccessPanel">
-  <h4>⛔ ไม่มีสิทธิ์แชร์ Flex</h4>
-  <button onclick="contactCreator()">➕ ติดต่อแอด (คลิก!)</button>
-</div>
-
-<div class="qr">
-  <img src="https://img5.pic.in.th/file/secure-sv1/IMG_12468d6ce5b9565e3489.jpeg"/>
-  <p>แสกนติดต่อผู้สร้าง</p>
+  <button onclick="window.location.href='https://pic.in.th/?lang=th'"
+    style="border-color:#ff00ff;color:#ff00ff">
+    ฝากรูปภาพ
+  </button>
 </div>
 
 <script>
-const ADMIN = "Ua48c35a3cd7641afee1d85c317032ad5";
+/* ================== ตั้งค่า ================== */
 
-// whitelist (ใส่สำคัญเท่านั้น)
-let whitelist = [
-  {name:"ผู้สร้างระบบ", userId:ADMIN},
-  {name:"บัญชีเทสระบบ", userId:"U9b6952e52b4a9a683471ae688bf30b80"},
-  {name:"ให้ทดลองใช้ P", userId:"Uffa99b9ba90b2d097eb5300c6a521560"}
+// 🔴 LIFF ID
+const LIFF_ID = "2008621627-1eN2VA2x";
+
+// 🔐 รหัสผ่าน (เปลี่ยนตรงนี้)
+const PASSWORD = "357000";
+
+// 👑 LINE ผู้สร้าง
+const ADMIN_LINE = "mc357.com";
+
+// ✅ UserId ที่มีสิทธิ์
+const WHITELIST = [
+  "Ua48c35a3cd7641afee1d85c317032ad5",
+  "Uffa99b9ba90b2d097eb5300c6a521560"
 ];
 
-let currentUserId = "";
+/* ============================================ */
 
-// ปุ่มกดเช็ค userId
-async function checkUserId(){
+liff.init({ liffId: LIFF_ID });
+
+async function checkAccess(){
+  const pass = document.getElementById("password").value.trim();
+  if(pass !== PASSWORD) return deny();
+
   if(!liff.isLoggedIn()) liff.login();
+
   const profile = await liff.getProfile();
-  currentUserId = profile.userId;
-  document.getElementById("myUserId").innerText = `"${profile.displayName}","${currentUserId}"`;
+  if(!WHITELIST.includes(profile.userId)) return deny();
+
+  document.getElementById("loginPanel").classList.add("hidden");
+  document.getElementById("mainPanel").classList.remove("hidden");
+  document.getElementById("greeting").innerText =
+    "สวัสดีคุณ " + profile.displayName;
 }
 
-// ส่ง Flex
+function deny(){
+  document.getElementById("loginPanel").classList.add("hidden");
+  document.getElementById("mainPanel").classList.add("hidden");
+  document.getElementById("denyPanel").classList.remove("hidden");
+}
+
+function contactCreator(){
+  location.href = "https://line.me/ti/p/~" + ADMIN_LINE;
+}
+
+// ส่ง Flex (ของคุณเดิม)
 async function sendFlex(){
   if(!liff.isInClient()) return alert("⚠ เปิดผ่าน LINE");
-  try{
-    const profile = await liff.getProfile();
-    currentUserId = profile.userId;
 
-    const allowed = whitelist.some(w => w.userId === currentUserId);
-    if(!allowed){
-      document.getElementById("noAccessPanel").style.display="block";
-      return alert("⛔ คุณไม่มีสิทธิ์แชร์ Flex");
-    }
+  const raw = document.getElementById("genInput").value.trim();
+  const parts = raw.split(" ");
+  if(parts.length < 2) return alert("❌ format ผิด");
 
-    const raw = document.getElementById("genInput").value.trim();
-    const parts = raw.split(" ");
-    if(parts.length < 2) return alert("❌ format ผิด");
+  const [imageUrl, lineId] = parts;
 
-    const [imageUrl, lineId] = parts;
-
-    const flexMsg = {
-      "type": "flex",
-      "altText": "FLEX สนใจติดต่อ ID: mc357.com",
-      "contents": {
-        "type": "carousel",
-        "contents": [
-          {
-            "type": "bubble",
-            "size": "giga",
-            "hero": {
-              "type": "image",
-              "url": imageUrl,
-              "size": "full",
-              "aspectMode": "cover",
-              "aspectRatio": "2:3",
-              "gravity": "top"
-            },
-            "action": {
-              "type": "uri",
-              "uri": "https://line.me/ti/p/~" + lineId
-            }
-          }
-        ]
+  const flexMsg = {
+    type:"flex",
+    altText:"FLEX ฟรี สนใจติดต่อ",
+    contents:{
+      type:"bubble",
+      size:"giga",
+      hero:{
+        type:"image",
+        url:imageUrl,
+        size:"full",
+        aspectMode:"cover",
+        aspectRatio:"2:3"
+      },
+      action:{
+        type:"uri",
+        uri:"https://line.me/ti/p/~"+lineId
       }
-    };
+    }
+  };
 
-    await liff.shareTargetPicker([flexMsg]);
-    alert("✨ แชร์ Flex สำเร็จ!");
-  }catch(e){
-    alert("❌ Flex error: " + e);
-  }
+  await liff.shareTargetPicker([flexMsg]);
 }
-
-// ติดต่อผู้สร้าง
-function contactCreator(){
-  window.location.href = "http://line.me/ti/p/~mc357.com";
-}
-
-// LIFF init + ทักชื่อ
-liff.init({ liffId: "2008621627-1eN2VA2x" }).then(async ()=>{
-  if(!liff.isLoggedIn()) liff.login();
-  const profile = await liff.getProfile();
-  document.getElementById("greeting").innerText = "สวัสดีคุณ " + profile.displayName;
-});
 </script>
 
 </body>
