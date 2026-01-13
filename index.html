@@ -49,12 +49,21 @@ button:hover{
   color:#000;
 }
 .qr img{
-  width:160px;
+  width:150px;
   margin-top:10px;
   border:2px solid #0ff;
   border-radius:8px;
 }
 .hidden{display:none;}
+.small{
+  font-size:12px;
+  color:#0ff;
+  word-break:break-all;
+}
+hr{
+  border-color:#333;
+  margin:15px 0;
+}
 </style>
 </head>
 
@@ -65,16 +74,30 @@ button:hover{
   <h3>🔐 ใส่รหัสผ่าน</h3>
   <input type="password" id="password" placeholder="รหัสผ่านเข้าใช้งาน">
   <button onclick="checkAccess()">เข้าใช้งาน</button>
+
+  <hr>
+
+  <!-- ➕ ติดต่อ + QR -->
+  <button onclick="contactCreator()">➕ ติดต่อผู้สร้าง</button>
+  <div class="qr">
+    <img src="https://img5.pic.in.th/file/secure-sv1/IMG_12468d6ce5b9565e3489.jpeg">
+    <p class="small">สแกนแอด LINE ผู้สร้าง</p>
+  </div>
+
+  <hr>
+
+  <!-- 🔍 เช็ค UserID -->
+  <button onclick="checkMyUserId()">🔍 เช็ค UserID ของฉัน</button>
+  <div id="myUserId" class="small"></div>
 </div>
 
 <!-- ❌ ไม่มีสิทธิ์ -->
 <div class="panel hidden" id="denyPanel">
   <h3>⛔ ไม่มีสิทธิ์เข้าใช้งาน</h3>
-  <p style="font-size:13px">กรุณาติดต่อผู้สร้างระบบ</p>
+  <p class="small">กรุณาติดต่อผู้สร้างระบบ</p>
   <button onclick="contactCreator()">➕ แอด LINE ผู้สร้าง</button>
   <div class="qr">
     <img src="https://img5.pic.in.th/file/secure-sv1/IMG_12468d6ce5b9565e3489.jpeg">
-    <p>สแกนเพื่อแอดไลน์</p>
   </div>
 </div>
 
@@ -82,10 +105,7 @@ button:hover{
 <div class="panel hidden" id="mainPanel">
   <h3 id="greeting">สวัสดี</h3>
 
-  <p style="color:#0ff;font-size:13px">
-    ใส่ลิงก์รูปภาพ เว้นวรรค ตามด้วยไอดีไลน์
-  </p>
-
+  <p class="small">ใส่ลิงก์รูปภาพ เว้นวรรค ตามด้วยไอดีไลน์</p>
   <input id="genInput" placeholder="URLรูปภาพ ไอดีไลน์">
 
   <button onclick="sendFlex()">แชร์ Flex</button>
@@ -93,81 +113,99 @@ button:hover{
     style="border-color:#ff00ff;color:#ff00ff">
     ฝากรูปภาพ
   </button>
+
+  <hr>
+
+  <!-- 🔍 เช็ค UserID ในหน้าใช้งาน -->
+  <button onclick="checkMyUserId()">🔍 เช็ค UserID</button>
+  <div id="myUserId2" class="small"></div>
 </div>
 
 <script>
-/* ================== ตั้งค่า ================== */
+/* ========== ตั้งค่า ========== */
 
 // 🔴 LIFF ID
 const LIFF_ID = "2008621627-1eN2VA2x";
 
-// 🔐 รหัสผ่าน (เปลี่ยนตรงนี้)
+// 🔐 รหัสผ่าน
 const PASSWORD = "357000";
 
 // 👑 LINE ผู้สร้าง
 const ADMIN_LINE = "mc357.com";
 
-// ✅ UserId ที่มีสิทธิ์
+// ✅ ผู้มีสิทธิ์ (ชื่อ + UserID)
 const WHITELIST = [
-  "Ua48c35a3cd7641afee1d85c317032ad5",
-  "Uffa99b9ba90b2d097eb5300c6a521560"
+  { name: "ผู้สร้างระบบ", userId: "Ua48c35a3cd7641afee1d85c317032ad5" },
+  { name: "บัญชีทดสอบ", userId: "Uffa99b9ba90b2d097eb5300c6a521560" }
 ];
 
-/* ============================================ */
+/* ============================ */
 
 liff.init({ liffId: LIFF_ID });
 
 async function checkAccess(){
-  const pass = document.getElementById("password").value.trim();
-  if(pass !== PASSWORD) return deny();
+  if(document.getElementById("password").value.trim() !== PASSWORD){
+    return deny();
+  }
 
   if(!liff.isLoggedIn()) liff.login();
+  const p = await liff.getProfile();
 
-  const profile = await liff.getProfile();
-  if(!WHITELIST.includes(profile.userId)) return deny();
+  const allowedUser = WHITELIST.find(w => w.userId === p.userId);
+  if(!allowedUser) return deny();
 
-  document.getElementById("loginPanel").classList.add("hidden");
-  document.getElementById("mainPanel").classList.remove("hidden");
-  document.getElementById("greeting").innerText =
-    "สวัสดีคุณ " + profile.displayName;
+  loginPanel.classList.add("hidden");
+  mainPanel.classList.remove("hidden");
+
+  greeting.innerText =
+    "สวัสดีคุณ " + (allowedUser.name || p.displayName);
 }
 
 function deny(){
-  document.getElementById("loginPanel").classList.add("hidden");
-  document.getElementById("mainPanel").classList.add("hidden");
-  document.getElementById("denyPanel").classList.remove("hidden");
+  loginPanel.classList.add("hidden");
+  mainPanel.classList.add("hidden");
+  denyPanel.classList.remove("hidden");
 }
 
 function contactCreator(){
   location.href = "https://line.me/ti/p/~" + ADMIN_LINE;
 }
 
-// ส่ง Flex (ของคุณเดิม)
+// 🔍 เช็ค UserID (เอาไปเพิ่ม whitelist)
+async function checkMyUserId(){
+  if(!liff.isLoggedIn()) liff.login();
+  const p = await liff.getProfile();
+
+  const text =
+`{ name: "${p.displayName}", userId: "${p.userId}" },`;
+
+  document.getElementById("myUserId").innerText = text;
+  const el2 = document.getElementById("myUserId2");
+  if(el2) el2.innerText = text;
+}
+
+// ส่ง Flex
 async function sendFlex(){
   if(!liff.isInClient()) return alert("⚠ เปิดผ่าน LINE");
 
-  const raw = document.getElementById("genInput").value.trim();
-  const parts = raw.split(" ");
-  if(parts.length < 2) return alert("❌ format ผิด");
-
-  const [imageUrl, lineId] = parts;
+  const raw = genInput.value.trim().split(" ");
+  if(raw.length < 2) return alert("❌ format ผิด");
 
   const flexMsg = {
     type:"flex",
     altText:"FLEX ฟรี สนใจติดต่อ",
     contents:{
       type:"bubble",
-      size:"giga",
       hero:{
         type:"image",
-        url:imageUrl,
+        url:raw[0],
         size:"full",
         aspectMode:"cover",
         aspectRatio:"2:3"
       },
       action:{
         type:"uri",
-        uri:"https://line.me/ti/p/~"+lineId
+        uri:"https://line.me/ti/p/~"+raw[1]
       }
     }
   };
